@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	// "github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -23,15 +24,33 @@ func NewCliApplication() (CliApplication, error) {
 
 func (c *cliApplication) Run() error {
 
-	mainMenu, err := c.createMainMenu()
-	if err != nil {
-		return fmt.Errorf("failed to create main menu: %w", err)
+	newPrimitive := func(text string) tview.Primitive {
+		return tview.NewTextView().
+			SetTextAlign(tview.AlignCenter).
+			SetText(text)
 	}
+	menu, _ := c.createSolidusMenu()
+	main, _ := c.createMainMenu()
+	sideBar, _ := c.createInfraMenu()
 
-	if err := c.app.SetRoot(mainMenu, true).Run(); err != nil {
-		return fmt.Errorf("failed to run application: %w", err)
+	// menu.SetSelectedStyle(tcell.StyleDefault.Background(tcell.ColorPink))
+	// main.SetSelectedStyle(tcell.StyleDefault.Background(tcell.ColorPink))
+	// sideBar.SetSelectedStyle(tcell.StyleDefault.Background(tcell.ColorPink))
+
+	grid := tview.NewGrid().
+		SetRows(1, -1, -1, 1).
+		SetColumns(-1, -2).
+		SetBorders(true).
+		AddItem(newPrimitive("Header"), 0, 0, 1, 4, 0, 0, false).
+		AddItem(newPrimitive("Footer"), 3, 0, 1, 4, 0, 0, false)
+
+	grid.AddItem(menu, 1, 0, 1, 1, 0, 0, false).
+		AddItem(sideBar, 2, 0, 1, 1, 0, 0, false).
+		AddItem(main, 1, 1, 2, 3, 0, 0, false)
+
+	if err := tview.NewApplication().SetRoot(grid, true).SetFocus(menu).Run(); err != nil {
+		panic(err)
 	}
-
 	return nil
 }
 
